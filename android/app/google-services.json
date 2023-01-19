@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "687898089304",
+    "project_id": "keep-safe-f6d15",
+    "storage_bucket": "keep-safe-f6d15.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:687898089304:android:44ce47be28ba05831d772d",
+        "android_client_info": {
+          "package_name": "com.example.safe_encrypt"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "687898089304-b1nukuq9usalpqkf8s0qsmcshg1numj6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.safe_encrypt",
+            "certificate_hash": "9b604e74e64fd4acb2b1a6143ecfbf632b98b2c2"
+          }
+        },
+        {
+          "client_id": "687898089304-h4cu98o03ig1buefbmq4r0gpa51im6ik.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_Oimo1Vswbc_1r1f2gevs8ipELZS_rC0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "687898089304-h4cu98o03ig1buefbmq4r0gpa51im6ik.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
