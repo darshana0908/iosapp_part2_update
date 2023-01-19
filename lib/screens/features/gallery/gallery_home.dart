@@ -15,7 +15,7 @@ import 'package:safe_encrypt/screens/features/gallery/nots/spacial_nots/spacial_
 import 'package:safe_encrypt/services/icon.dart';
 import 'package:safe_encrypt/utils/widgets/custom_drawer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+//gg
 import '../../../utils/helper_methods.dart';
 import '../settings/settings.dart';
 import 'components/glalery_folder.dart';
