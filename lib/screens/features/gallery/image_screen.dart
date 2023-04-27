@@ -7,15 +7,18 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as path;
 import 'package:safe_encrypt/constants/images.dart';
 import 'package:safe_encrypt/db/sqldb.dart';
+import 'package:safe_encrypt/screens/features/gallery/gallery_home.dart';
 import 'package:safe_encrypt/screens/features/gallery/nots/my_nots.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../services/image_service.dart';
 import '../../../constants/colors.dart';
-import '../../../services/text_writing_page.dart';
+import 'nots/create_note.dart';
 
 class ImageScreen extends StatefulWidget {
   final String path;
@@ -43,7 +46,7 @@ class _ImageScreenState extends State<ImageScreen>
   String imgPath = '';
   bool exitapp = true;
   bool hideminimyzeicon = true;
-  bool tabbarcolor = false;
+  bool uploadimgpath = false;
 
   int x = 1;
   int y = 1;
@@ -56,16 +59,28 @@ class _ImageScreenState extends State<ImageScreen>
   List<Map>? response;
   List remainder = [];
   int currentTabIndex = 0;
+  bool galleryButton = false;
+  bool notesButton = false;
+  var coverimgpath;
+  String finalImage = '';
+  bool isImageLoading = true;
+  bool galleryTab = false;
+  bool notTab = false;
+
   // final TabController _tabController = TabController(length: 2, vsync: );
 
   @override
   void initState() {
+    loadpage();
+    textremainder();
+    loadImage();
     setState(() {
       textremainder();
       _isLoading = false;
     });
 
     decryptImages();
+    decryptedImages;
     loadPhotos();
     super.initState();
   }
@@ -86,20 +101,47 @@ class _ImageScreenState extends State<ImageScreen>
   }
 
   textremainder() async {
-    // remainder = await sqlDb.readData("SELECT * FROM  'notes'WHERE path = '${widget.path}'  ");
-    var remainders = await sqlDb
+    log('fffffff');
+    remainder = await sqlDb
         .readData("SELECT * FROM notes WHERE path = '${widget.path}'");
+    if (remainder.isNotEmpty) {
+      setState(() {
+        remainder;
+        log(remainder.toString());
+      });
+    }
+  }
 
-    // log(myfolderlist[1]['folder-id'].toString());
+  loadImage() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    coverimgpath = sharedPreferences.getBool(
+      'foldername-${widget.title}-${widget.pin}-bool',
+    );
+
+    var imageName =
+        sharedPreferences.getString('foldername-${widget.title}-${widget.pin}');
+    log(imageName.toString() + 'jhggggggg');
+    if (coverimgpath == true) {
+      finalImage = imageName.toString();
+      setState(() {
+        uploadimgpath = true;
+        log(uploadimgpath.toString());
+      });
+    } else {
+      log(uploadimgpath.toString());
+      setState(() {
+        finalImage = imageName.toString();
+        uploadimgpath = false;
+      });
+    }
     setState(() {
-      // log(remainders);
-      remainders;
+      finalImage = imageName.toString();
+      log(finalImage);
+      print('ggggggggggggggggg');
+      print(coverimgpath);
+      log(coverimgpath.toString());
+      isImageLoading = false;
     });
-    // List<Map<String, dynamic>>.generate(remainder.length, (index) {
-    //   log(remainder[index]['dtime'].toString());
-    //   return Map<String, dynamic>.from(remainder[index]);
-    // }, growable: true);
-    // var text = remainder[1]['text'];
   }
 
   @override
@@ -161,111 +203,25 @@ class _ImageScreenState extends State<ImageScreen>
                             : Container(),
                       ],
                       flexibleSpace: SizedBox(
-                        height: 600,
+                        height: 650,
                         child: FlexibleSpaceBar(
-                          centerTitle: true,
-                          collapseMode: CollapseMode.parallax,
-                          expandedTitleScale: 50,
-                          background: SizedBox(
-                            height: 500,
-                            child: imgload
-                                ? SizedBox(
-                                    height: 600,
-                                    child: Column(
-                                      children: [
-                                        (decryptedImages.last
-                                                    .toLowerCase()
-                                                    .endsWith('jpg') ||
-                                                decryptedImages.last
-                                                    .toLowerCase()
-                                                    .endsWith('jpeg'))
-                                            ? SizedBox(
-                                                height: MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                    0.26,
-                                                width: MediaQuery.of(context)
-                                                    .size
-                                                    .width,
-                                                child: Image.file(
-                                                  File(decryptedImages.last),
-                                                  fit: BoxFit.cover,
-                                                ),
-                                              )
-                                            : (decryptedImages.last
-                                                        .toLowerCase()
-                                                        .endsWith('mp4') ||
-                                                    decryptedImages.last
-                                                        .toLowerCase()
-                                                        .endsWith('mp3') ||
-                                                    decryptedImages.last
-                                                        .toLowerCase()
-                                                        .endsWith('avi') ||
-                                                    decryptedImages.last
-                                                        .toLowerCase()
-                                                        .endsWith('mpeg'))
-                                                ? SizedBox(
-                                                    height:
-                                                        MediaQuery.of(context).size.height *
-                                                            0.3,
-                                                    width: MediaQuery.of(context)
-                                                        .size
-                                                        .width,
-                                                    child: Image.asset(videoIcon,
-                                                        fit: BoxFit.scaleDown))
-                                                : (decryptedImages.last
-                                                        .toLowerCase()
-                                                        .endsWith('pdf'))
-                                                    ? SizedBox(
-                                                        height: MediaQuery.of(context).size.height * 0.3,
-                                                        width: MediaQuery.of(context).size.width,
-                                                        child: Image.asset(pdfIcon, fit: BoxFit.scaleDown))
-                                                    : (decryptedImages.last.toLowerCase().endsWith('docx') || decryptedImages.last.toLowerCase().endsWith('ppt'))
-                                                        ? SizedBox(height: MediaQuery.of(context).size.height * 0.3, width: MediaQuery.of(context).size.width, child: Image.asset(docsIcon, fit: BoxFit.scaleDown))
-                                                        : (decryptedImages.last.toLowerCase().endsWith('txt') || decryptedImages.last.toLowerCase().endsWith('txt'))
-                                                            ? SizedBox(height: MediaQuery.of(context).size.height * 0.3, width: MediaQuery.of(context).size.width, child: Image.asset('assets/text.png', fit: BoxFit.scaleDown))
-                                                            : remainder.last
-                                                                ? SizedBox(
-                                                                    height: MediaQuery.of(context)
-                                                                            .size
-                                                                            .height *
-                                                                        0.3,
-                                                                    width: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width,
-                                                                    child: Image
-                                                                        .asset(
-                                                                      'assets/ic.JPG',
-                                                                      fit: BoxFit
-                                                                          .cover,
-                                                                    ),
-                                                                  )
-                                                                : SizedBox(
-                                                                    height: MediaQuery.of(context)
-                                                                            .size
-                                                                            .height *
-                                                                        0.3,
-                                                                    width: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width,
-                                                                    child: Image
-                                                                        .asset(
-                                                                      'assets/ic.JPG',
-                                                                      fit: BoxFit
-                                                                          .cover,
-                                                                    ),
-                                                                  ),
-                                      ],
-                                    ),
-                                  )
-                                : Image.asset(
-                                    'assets/ic.JPG',
-                                    fit: BoxFit.cover,
-                                  ),
-                          ),
-                        ),
+                            centerTitle: true,
+                            collapseMode: CollapseMode.parallax,
+                            expandedTitleScale: 50,
+                            background: SizedBox(
+                              height: 650,
+                              child: SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.27,
+                                child: uploadimgpath
+                                    ? Image.file(
+                                        File(finalImage),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Image.asset(finalImage,
+                                        fit: BoxFit.cover),
+                              ),
+                            )),
                       ),
                       title: SizedBox(
                         width: 300,
@@ -292,136 +248,137 @@ class _ImageScreenState extends State<ImageScreen>
                       ),
                       backgroundColor: kwhite,
                       bottom: TabBar(
-                          indicatorPadding: EdgeInsets.all(1),
-                          indicatorWeight: 5,
-                          indicatorColor: kred,
+                          onTap: (value) {
+                            log(value.toString());
+                            if (value == 0) {
+                              setState(() {
+                                currentTabIndex = 0;
+                                hideminimyzeicon = true;
+                                galleryTab = false;
+                              });
+                            } else {
+                              setState(() {
+                                hideminimyzeicon = false;
+                                currentTabIndex = 1;
+                                galleryTab = true;
+                              });
+                            }
+                          },
+                          labelPadding: EdgeInsets.all(10),
+                          labelColor: Colors.redAccent,
+                          unselectedLabelColor: Colors.white,
                           indicatorSize: TabBarIndicatorSize.label,
-                          padding: EdgeInsets.all(1),
-                          labelColor: kgray,
-                          controller: controller,
+                          indicator: BoxDecoration(
+                            gradient: LinearGradient(colors: [
+                              Color.fromARGB(255, 186, 108, 192),
+                              Color.fromARGB(255, 147, 224, 211)
+                            ]),
+                            borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(10),
+                                topRight: Radius.circular(10)),
+                            // color: Colors.white
+                          ),
                           tabs: [
-                            InkWell(
-                              onTap: () {
-                                setState(() {
-                                  // tabbarcolor = true;
-                                  currentTabIndex = 0;
-                                  hideminimyzeicon = true;
-                                });
-                              },
-                              child: Container(
-                                color: tabbarcolor
-                                    ? Color.fromARGB(255, 34, 152, 173)
-                                    : kblue,
+                            Tab(
+                              child: Align(
                                 alignment: Alignment.center,
-                                height: 50,
-                                child: Text(
-                                  'Gallery',
-                                  style: TextStyle(color: kbg, fontSize: 19),
-                                ),
+                                child: Text("GALLERY"),
                               ),
                             ),
-                            InkWell(
-                              onTap: () {
-                                setState(() {
-                                  // tabbarcolor = true;
-                                  hideminimyzeicon = false;
-                                  currentTabIndex = 1;
-                                });
-                              },
-                              child: Container(
-                                color: kblue,
+                            Tab(
+                              child: Align(
                                 alignment: Alignment.center,
-                                height: 50,
-                                child: Text(
-                                  'Notes',
-                                  style: TextStyle(color: kbg, fontSize: 19),
-                                ),
+                                child: Text("NOTES"),
                               ),
                             ),
                           ])),
                 ),
                 floatingActionButton: Padding(
-                  padding: const EdgeInsets.only(bottom: 50),
-                  child: SpeedDial(
-                    buttonSize: const Size(70.0, 70.0),
-                    childrenButtonSize: const Size(55.0, 55.0),
-                    overlayColor: const Color(0xff00aeed),
-                    overlayOpacity: 1.0,
-                    activeIcon: Icons.close,
-                    foregroundColor: kwhite,
-                    activeForegroundColor: kblack,
-                    backgroundColor: kblue,
-                    activeBackgroundColor: kwhite,
-                    spacing: 20,
-                    spaceBetweenChildren: 15,
-                    icon: Icons.add,
-                    children: [
-                      SpeedDialChild(
-                        labelWidget: Padding(
-                            padding: const EdgeInsets.only(right: 20),
-                            child: Text('Notes',
-                                style: TextStyle(
-                                    color: kwhite,
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w500))),
-                        onTap: () async {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => TxtWritingPage(
-                                      pageload: loadpage,
-                                      title: widget.title,
-                                      pin: widget.pin,
-                                      loading: textremainder,
-                                      path: widget.path,
-                                    )),
-                          );
-                        },
-                        elevation: 150,
-                        backgroundColor: Colors.black38,
-                        child:
-                            Icon(Icons.note_add_sharp, color: kwhite, size: 30),
-                        labelBackgroundColor: const Color(0xff00aeed),
-                      ),
-                      SpeedDialChild(
-                        labelWidget: Padding(
-                            padding: const EdgeInsets.only(right: 20),
-                            child: Text('Take photo',
-                                style: TextStyle(
-                                    color: kwhite,
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w500))),
-                        onTap: () async {
-                          takePhoto();
-                          setState(() {
-                            widget.getbool();
-                          });
-                        },
-                        elevation: 150,
-                        backgroundColor: Colors.black38,
-                        child: Icon(Icons.camera_alt, color: kwhite, size: 30),
-                        labelBackgroundColor: const Color(0xff00aeed),
-                      ),
-                      SpeedDialChild(
-                          child: Icon(Icons.photo, color: kwhite, size: 30),
-                          labelWidget: Padding(
-                              padding: const EdgeInsets.only(right: 20),
-                              child: Text('Import files',
-                                  style: TextStyle(
-                                      color: kwhite,
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w500))),
-                          onTap: () async {
-                            importFiles();
-                            setState(() {
-                              widget.getbool();
-                              print(widget.getbool());
-                            });
-                          },
-                          backgroundColor: Colors.black38),
-                    ],
-                  ),
-                ),
+                    padding: const EdgeInsets.only(bottom: 50),
+                    child: SpeedDial(
+                      buttonSize: const Size(70.0, 70.0),
+                      childrenButtonSize: const Size(55.0, 55.0),
+                      overlayColor: const Color(0xff00aeed),
+                      overlayOpacity: 1.0,
+                      activeIcon: Icons.close,
+                      foregroundColor: kwhite,
+                      activeForegroundColor: kblack,
+                      backgroundColor: kblue,
+                      activeBackgroundColor: kwhite,
+                      spacing: 20,
+                      spaceBetweenChildren: 15,
+                      icon: Icons.add,
+                      children: [
+                        galleryTab == true
+                            ? SpeedDialChild(
+                                labelWidget: Padding(
+                                    padding: const EdgeInsets.only(right: 20),
+                                    child: Text('Notes',
+                                        style: TextStyle(
+                                            color: kwhite,
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w500))),
+                                onTap: () async {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => CreateNote(
+                                              pageload: loadpage,
+                                              title: widget.title,
+                                              pin: widget.pin,
+                                              loading: textremainder,
+                                              path: widget.path,
+                                            )),
+                                  );
+                                },
+                                elevation: 150,
+                                backgroundColor: Colors.black38,
+                                child: Icon(Icons.note_add_sharp,
+                                    color: kwhite, size: 30),
+                                labelBackgroundColor: const Color(0xff00aeed),
+                              )
+                            : SpeedDialChild(
+                                labelWidget: Padding(
+                                    padding: const EdgeInsets.only(right: 20),
+                                    child: Text('Take Photo',
+                                        style: TextStyle(
+                                            color: kwhite,
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w500))),
+                                onTap: () async {
+                                  takePhoto();
+                                  setState(() {
+                                    widget.getbool();
+                                  });
+                                },
+                                elevation: 150,
+                                backgroundColor: Colors.black38,
+                                child: Icon(Icons.camera_alt,
+                                    color: kwhite, size: 30),
+                                labelBackgroundColor: const Color(0xff00aeed),
+                              ),
+                        galleryTab == true
+                            ? SpeedDialChild()
+                            : SpeedDialChild(
+                                child:
+                                    Icon(Icons.photo, color: kwhite, size: 30),
+                                labelWidget: Padding(
+                                    padding: const EdgeInsets.only(right: 20),
+                                    child: Text('Import Files',
+                                        style: TextStyle(
+                                            color: kwhite,
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w500))),
+                                onTap: () async {
+                                  importFiles();
+                                  setState(() {
+                                    widget.getbool();
+                                    print(widget.getbool());
+                                  });
+                                },
+                                backgroundColor: Colors.black38),
+                      ],
+                    )),
                 backgroundColor: kwhite,
                 body: TabBarView(
                   controller: controller,
@@ -430,17 +387,19 @@ class _ImageScreenState extends State<ImageScreen>
                       child: SizedBox(
                         height: MediaQuery.of(context).size.height * 0.7,
                         child: _isLoading
-                            ? const Center(
-                                child: SizedBox(
-                                height: 100,
-                                width: 100,
-                                child: CupertinoActivityIndicator(radius: 20),
+                            ? Center(
+                                child: Center(
+                                child: LoadingAnimationWidget.staggeredDotsWave(
+                                  color: Colors.greenAccent,
+                                  size: 80,
+                                ),
                               ))
                             : loadPhotos(),
                       ),
                     ),
                     Center(
                       child: MyNots(
+                          notlist: remainder,
                           path: widget.path,
                           pin: widget.pin,
                           getbool: textremainder,
@@ -448,185 +407,7 @@ class _ImageScreenState extends State<ImageScreen>
                           title: widget.title),
                     ),
                   ],
-                )
-
-                //  CustomScrollView(
-                //   physics: const PageScrollPhysics(),
-                //   scrollBehavior: const ScrollBehavior(),
-                //   slivers: [
-                //     SliverAppBar(
-                //       backgroundColor: kdarkblue,
-                //       bottom:
-                //           TabBar(indicatorSize: TabBarIndicatorSize.tab, padding: const EdgeInsets.all(2.0), indicatorColor: Colors.redAccent, tabs: [
-                //         Padding(
-                //           padding: const EdgeInsets.all(2.0),
-                //           child: Container(
-                //             alignment: Alignment.center,
-                //             height: 30,
-                //             child: Text(
-                //               'Gallery',
-                //               style: TextStyle(color: kbg, fontSize: 19),
-                //             ),
-                //           ),
-                //         ),
-                //         Container(
-                //           alignment: Alignment.center,
-                //           height: 50,
-                //           child: Text(
-                //             'Notes',
-                //             style: TextStyle(color: kbg, fontSize: 19),
-                //           ),
-                //         ),
-                //       ]),
-                //       actions: [
-                //         IconButton(
-                //           icon: const Icon(Icons.open_in_new),
-                //           onPressed: () {
-                //             Navigator.push(
-                //               context,
-                //               MaterialPageRoute(
-                //                 builder: (_) =>
-                //                     MyNots(path: widget.path, pin: widget.pin, getbool: widget.getbool, imgpath: imgPath, title: widget.title),
-                //               ),
-                //             );
-                //           },
-                //         ),
-                //         IconButton(
-                //           icon: Icon(x == 1
-                //               ? Icons.view_list
-                //               : x == 2
-                //                   ? Icons.view_module
-                //                   : Icons.view_comfortable),
-                //           padding: EdgeInsets.zero,
-                //           onPressed: () {
-                //             setState(() {
-                //               if (x == 1) {
-                //                 x = 2;
-                //               } else if (x == 2) {
-                //                 x = 3;
-                //               } else {
-                //                 x = 1;
-                //               }
-                //             });
-                //           },
-                //         ),
-                //         IconButton(
-                //           icon: const Icon(Icons.more_vert),
-                //           onPressed: () {},
-                //         ),
-                //       ],
-                //       flexibleSpace: FlexibleSpaceBar(
-                //         background: imgload
-                //             ? SizedBox(
-                //                 height: 100,
-                //                 child: Column(
-                //                   children: [
-                //                     (decryptedImages.last.toLowerCase().endsWith('jpg') || decryptedImages.last.toLowerCase().endsWith('jpeg'))
-                //                         ? SizedBox(
-                //                             height: MediaQuery.of(context).size.height * 0.3,
-                //                             width: MediaQuery.of(context).size.width,
-                //                             child: Image.file(
-                //                               File(decryptedImages.last),
-                //                               fit: BoxFit.cover,
-                //                             ),
-                //                           )
-                //                         : (decryptedImages.last.toLowerCase().endsWith('mp4') ||
-                //                                 decryptedImages.last.toLowerCase().endsWith('mp3') ||
-                //                                 decryptedImages.last.toLowerCase().endsWith('avi') ||
-                //                                 decryptedImages.last.toLowerCase().endsWith('mpeg'))
-                //                             ? SizedBox(
-                //                                 height: MediaQuery.of(context).size.height * 0.3,
-                //                                 width: MediaQuery.of(context).size.width,
-                //                                 child: Image.asset(videoIcon, fit: BoxFit.scaleDown))
-                //                             : (decryptedImages.last.toLowerCase().endsWith('pdf'))
-                //                                 ? SizedBox(
-                //                                     height: MediaQuery.of(context).size.height * 0.3,
-                //                                     width: MediaQuery.of(context).size.width,
-                //                                     child: Image.asset(pdfIcon, fit: BoxFit.scaleDown))
-                //                                 : (decryptedImages.last.toLowerCase().endsWith('docx') ||
-                //                                         decryptedImages.last.toLowerCase().endsWith('ppt'))
-                //                                     ? SizedBox(
-                //                                         height: MediaQuery.of(context).size.height * 0.3,
-                //                                         width: MediaQuery.of(context).size.width,
-                //                                         child: Image.asset(docsIcon, fit: BoxFit.scaleDown))
-                //                                     : (decryptedImages.last.toLowerCase().endsWith('txt') ||
-                //                                             decryptedImages.last.toLowerCase().endsWith('txt'))
-                //                                         ? SizedBox(
-                //                                             height: MediaQuery.of(context).size.height * 0.3,
-                //                                             width: MediaQuery.of(context).size.width,
-                //                                             child: Image.asset('assets/text.png', fit: BoxFit.scaleDown))
-                //                                         : remainder.last
-                //                                             ? SizedBox(
-                //                                                 height: MediaQuery.of(context).size.height * 0.3,
-                //                                                 width: MediaQuery.of(context).size.width,
-                //                                                 child: Image.asset(
-                //                                                   'assets/ic.JPG',
-                //                                                   fit: BoxFit.cover,
-                //                                                 ),
-                //                                               )
-                //                                             : SizedBox(
-                //                                                 height: MediaQuery.of(context).size.height * 0.3,
-                //                                                 width: MediaQuery.of(context).size.width,
-                //                                                 child: Image.asset(
-                //                                                   'assets/ic.JPG',
-                //                                                   fit: BoxFit.cover,
-                //                                                 ),
-                //                                               ),
-                //                   ],
-                //                 ),
-                //               )
-                //             : Image.asset(
-                //                 'assets/ic.JPG',
-                //                 fit: BoxFit.cover,
-                //               ),
-                //         title: SizedBox(
-                //           width: 300,
-                //           height: 150,
-                //           child: Column(
-                //             mainAxisAlignment: MainAxisAlignment.end,
-                //             crossAxisAlignment: CrossAxisAlignment.start,
-                //             children: [
-                //               Text(widget.title),
-                //               Row(
-                //                 children: [
-                //                   TextButton(
-                //                     onPressed: () => setState(() => y = 2),
-                //                     child: Text(
-                //                       '(${decryptedImages.length})   All Files',
-                //                       style: TextStyle(color: kgray, fontSize: 11),
-                //                     ),
-                //                   ),
-                //                 ],
-                //               ),
-                //             ],
-                //           ),
-                //         ),
-                //       ),
-                //       floating: false,
-                //       pinned: true,
-                //       expandedHeight: MediaQuery.of(context).size.height * 0.3,
-                //     ),
-                //     SliverList(
-                //         delegate: SliverChildListDelegate([
-                //       Center(
-                //         child: SizedBox(
-                //           height: MediaQuery.of(context).size.height * 0.7,
-                //           child: _isLoading
-                //               ? const Center(
-                //                   child: SizedBox(
-                //                   height: 100,
-                //                   width: 100,
-                //                   child: CupertinoActivityIndicator(radius: 20),
-                //                 ))
-                //               : loadPhotos(),
-                //         ),
-                //       ),
-                //       Center(child: MyNots(path: widget.path, pin: widget.pin, getbool: widget.getbool, imgpath: imgPath, title: widget.title)),
-                //     ]))
-                //   ],
-                // ),
-
-                );
+                ));
           }),
         ),
       ),
@@ -669,10 +450,6 @@ class _ImageScreenState extends State<ImageScreen>
                 log(deletepath.toString());
               },
               onTap: () async {
-                // if (checkFileType(imgPath) == 1) {
-                //   bool result = await Navigator.push(context, MaterialPageRoute(builder: (context) => ImageDetails(path: imgPath)));
-                //   if (result) decryptImages();
-                // } else {
                 OpenFile.open(imgPath);
                 setState(() {
                   widget.getbool();
@@ -949,7 +726,7 @@ class _ImageScreenState extends State<ImageScreen>
                   child: Icon(Icons.photo_library_rounded,
                       size: 50, color: Colors.grey[400])),
               const SizedBox(height: 50),
-              Text("This album is empty.",
+              Text("This Album Is Empty.",
                   style: TextStyle(fontSize: 18.0, color: Colors.grey[500])),
             ],
           ),
@@ -986,8 +763,8 @@ class _ImageScreenState extends State<ImageScreen>
         setState(
           () {
             decryptedImages.add('${widget.path}/$imageName');
-            loadPhotos();
-            Future.delayed(const Duration(seconds: 1));
+
+            // Future.delayed(const Duration(seconds: 1));
             _isLoading = false;
             decryptedImages.last;
           },
@@ -1023,6 +800,8 @@ class _ImageScreenState extends State<ImageScreen>
         setState(
           () {
             decryptedImages.add('${widget.path}/$imageName');
+            decryptedImages.last;
+            _isLoading = false;
           },
         );
         Visibility(
@@ -1080,6 +859,7 @@ class _ImageScreenState extends State<ImageScreen>
 
     if (encryptedImages.isNotEmpty) {
       for (var image in encryptedImages) {
+        log(image.toString());
         imageName = image.replaceAll('$currentDirectory/', '');
         outputName = imageName.replaceAll('.aes', '');
         File decryptedFile = await fileCryptor.decrypt(
@@ -1090,6 +870,7 @@ class _ImageScreenState extends State<ImageScreen>
       setState(() {
         imgload = true;
         _isLoading = false;
+        decryptedImages;
       });
     } else {
       setState(() => _isLoading = false);

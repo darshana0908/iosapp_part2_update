@@ -69,6 +69,7 @@ dependencies:
   firebase_core:
   sign_in_with_apple: ^3.0.0
   crypto: ^3.0.1
+  loading_animation_widget: ^1.2.0+4
  
 
 dev_dependencies:

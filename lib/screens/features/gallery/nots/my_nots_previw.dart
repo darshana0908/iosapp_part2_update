@@ -7,7 +7,13 @@ import 'package:safe_encrypt/constants/colors.dart';
 import 'package:safe_encrypt/db/sqldb.dart';
 
 class MyNotePrevew extends StatefulWidget {
-  const MyNotePrevew({Key? key, required this.path, required this.textfilename, required this.loading, required this.textvalue, required this.text})
+  const MyNotePrevew(
+      {Key? key,
+      required this.path,
+      required this.textfilename,
+      required this.loading,
+      required this.textvalue,
+      required this.text})
       : super(key: key);
   final String text;
   final String textvalue;
@@ -35,15 +41,17 @@ class _MyNotePrevewState extends State<MyNotePrevew> {
   }
 
   mynotes() async {
-    List<Map> responsea = await sqlDb.readData("SELECT textvalue FROM  'notes' WHERE imgname = '${widget.textfilename}' ");
+    List<Map> responsea = await sqlDb.readData(
+        "SELECT textvalue FROM  'notes' WHERE imgname = '${widget.textfilename}' ");
     log(responsea.toString());
   }
 
   @override
   Widget build(BuildContext context) {
-    TextEditingController controler = TextEditingController(text: widget.textvalue);
+    TextEditingController controler =
+        TextEditingController(text: widget.textvalue);
     return Scaffold(
-      backgroundColor: kdarkblue,
+      // backgroundColor: kdarkblue,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -55,29 +63,68 @@ class _MyNotePrevewState extends State<MyNotePrevew> {
           },
         ),
         backgroundColor: kdarkblue,
-        title: SizedBox(width: 180, child: SingleChildScrollView(scrollDirection: Axis.vertical, child: Text(widget.textfilename))),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              setState(() {
-                editble = false;
-              });
-            },
+        title: SizedBox(
+            width: 180,
+            child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: Text(widget.textfilename))),
+      ),
+      body: SingleChildScrollView(
+        child: Column(children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Container(
+                child: TextField(
+                    onSubmitted: (value) async {
+                      widget.loading();
+                      log('${widget.path}/$textFileName');
+                      var response = await sqlDb.updateData(
+                          "UPDATE notes SET textvalue ='${controler.text}' WHERE text ='${widget.text}';");
+                      setState(() {
+                        widget.loading();
+                        log('ggggggggg');
+                      });
+
+                      Fluttertoast.showToast(
+                          msg: "  File updated",
+                          toastLength: Toast.LENGTH_SHORT,
+                          gravity: ToastGravity.BOTTOM,
+                          timeInSecForIosWeb: 1,
+                          backgroundColor: Colors.lightGreen,
+                          textColor: Colors.white,
+                          fontSize: 16.0);
+                    },
+                    // onSubmitted: (value) {
+                    //   log(value);
+                    // },
+                    onChanged: (value) {
+                      if (value != null) {
+                        log('hhh');
+                      } else {
+                        log("nnn");
+                      }
+                      log(value);
+                      value = controler.text + value;
+                    },
+                    decoration: const InputDecoration(),
+                    controller: controler,
+                    maxLines: 30),
+              ),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.save_alt),
+          TextButton(
             onPressed: () async {
-              // Share.shareFiles(['${widget.path}/$textFileName'], text: 'Great picture');
+              widget.loading();
               log('${widget.path}/$textFileName');
-              var response = await sqlDb.updateData("UPDATE notes SET textvalue ='${controler.text}' WHERE text ='${widget.text}';");
+              var response = await sqlDb.updateData(
+                  "UPDATE notes SET textvalue ='${controler.text}' WHERE text ='${widget.text}';");
               setState(() {
                 widget.loading();
-
-                // editble = true;
+                log('ggggggggg');
               });
-
-              Navigator.pop(context, true);
+              Navigator.pop(context);
               Fluttertoast.showToast(
                   msg: "  File updated",
                   toastLength: Toast.LENGTH_SHORT,
@@ -87,41 +134,19 @@ class _MyNotePrevewState extends State<MyNotePrevew> {
                   textColor: Colors.white,
                   fontSize: 16.0);
             },
-          ),
-          // IconButton(
-          //   icon: const Icon(Icons.share),
-          //   onPressed: () async {
-          //     _write(controler.text);
-          //     await Share.shareFiles(['${widget.path}/$textFileName'], text: 'Great picture');
-
-          //     log(textFileName);
-          //     delete('${widget.path}/$textFileName');
-          //   },
-          // )
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(35), color: kliteblue),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(25), color: kliteblue),
-                  child: Card(
-                    color: kliteblue,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextField(
-                        decoration: const InputDecoration(),
-                        readOnly: editble,
-                        controller: controler,
-                        maxLines: 50,
-                      ),
-                    ),
-                  ),
+            child: Padding(
+              padding: const EdgeInsets.all(18.0),
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 2, 235, 123),
+                    borderRadius: BorderRadius.circular(10)),
+                height: 60,
+                width: MediaQuery.of(context).size.width,
+                child: Text(
+                  'Save',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w500, color: kwhite, fontSize: 27),
                 ),
               ),
             ),
@@ -160,14 +185,16 @@ class _MyNotePrevewState extends State<MyNotePrevew> {
     print('ffffffffffffffffffffff');
   }
 
-  Future<File> encryptFiles(String inputFileName, String outputFileName, String directory) async {
+  Future<File> encryptFiles(
+      String inputFileName, String outputFileName, String directory) async {
     FileCryptor fileCryptor = FileCryptor(
       key: 'Your 32 bit key.................',
       iv: 16,
       dir: directory,
     );
 
-    return fileCryptor.encrypt(inputFile: inputFileName, outputFile: outputFileName);
+    return fileCryptor.encrypt(
+        inputFile: inputFileName, outputFile: outputFileName);
   }
 
   void delete(String path) {

@@ -108,10 +108,10 @@ class _CustomDrawerState extends State<CustomDrawer> {
             leading: const Icon(Icons.create),
             title: const Text(' Create New Vault'),
             onTap: () {
-              Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const FirstPinNumber()),
-                  (Route<dynamic> route) => false);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const FirstPinNumber()),
+              );
               // Navigator.push(context, MaterialPageRoute(builder: (context) => const FirstPinNumber()));
             },
           ),

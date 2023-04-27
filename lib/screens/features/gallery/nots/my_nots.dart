@@ -7,25 +7,29 @@ import 'package:numberpicker/numberpicker.dart';
 import 'package:safe_encrypt/constants/colors.dart';
 import 'package:safe_encrypt/db/sqldb.dart';
 import 'package:safe_encrypt/screens/features/gallery/nots/my_nots_previw.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:safe_encrypt/screens/features/gallery/nots/spacial_nots/spacial_nots_view.dart';
+// import 'package:share_plus/share_plus.dart';
 import '../../../../class/lcl_notification.dart';
-import '../../../../services/text_writing_page.dart';
+import 'create_note.dart';
 import 'dart:math';
 
 class MyNots extends StatefulWidget {
   const MyNots(
       {Key? key,
+      required this.notlist,
       required this.title,
       required this.imgpath,
       required this.getbool,
       required this.pin,
       required this.path})
       : super(key: key);
+  final List notlist;
   final String path;
   final String pin;
   final String title;
   final String imgpath;
   final Function getbool;
+
   @override
   State<MyNots> createState() => _MyNotsState();
 }
@@ -41,6 +45,7 @@ class _MyNotsState extends State<MyNots> {
 
   @override
   void initState() {
+    widget.getbool();
     textremainder();
     print(widget.path.toString());
     // itemtlist();
@@ -52,7 +57,6 @@ class _MyNotsState extends State<MyNots> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kdarkblue,
       floatingActionButton: Padding(
           padding: const EdgeInsets.only(bottom: 50),
           child: SpeedDial(
@@ -112,61 +116,65 @@ class _MyNotsState extends State<MyNots> {
       // ),
       body: GridView.builder(
           // itemCount: myfolderlist.length,
-          itemCount: remainders.length,
+          itemCount: widget.notlist.length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2, crossAxisSpacing: 4.0, mainAxisSpacing: 4.0),
           itemBuilder: (BuildContext context, index) {
-            String imgPath = remainders[index]['text'];
-
+            String imgPath = widget.notlist[index]['text'];
+//dddddddd
             TextEditingController mycontroller = TextEditingController(
-                text: remainders[index]['textvalue'].toString());
+                text: widget.notlist[index]['textvalue'].toString());
             print(imgPath);
 
             // oneEntity = folderList[index].toString();
             // folderName = oneEntity.split('/').last.replaceAll("'", '');
             return GestureDetector(
               onTap: () async {
-                if (remainders[index]['dtime'] == 'null') {
+                if (widget.notlist[index]['dtime'] == 'null') {
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => MyNotePrevew(
-                        path: remainders[index]['path'].toString(),
-                        loading: loadings,
-                        textfilename: remainders[index]['imgname'].toString(),
-                        textvalue: remainders[index]['textvalue'].toString(),
+                        path: widget.notlist[index]['path'].toString(),
+                        loading: widget.getbool,
+                        textfilename:
+                            widget.notlist[index]['imgname'].toString(),
+                        textvalue:
+                            widget.notlist[index]['textvalue'].toString(),
                         text: imgPath,
                       ),
                     ),
                   );
                 } else {
                   await flutterLocalNotificationsPlugin
-                      .cancel(remainders[index]['id']);
+                      .cancel(widget.notlist[index]['id']);
                   int newnoti =
-                      int.parse(remainders[index]['dtime'].toString());
+                      int.parse(widget.notlist[index]['dtime'].toString());
                   var response = await sqlDb.updateData(
-                      "UPDATE notes SET dtime ='${remainders[index]['dtime'].toString()}' WHERE text ='${remainders[index]['id'].toString()}';");
+                      "UPDATE notes SET dtime ='${widget.notlist[index]['dtime'].toString()}' WHERE text ='${widget.notlist[index]['id'].toString()}';");
 
                   // log(remainders[index]['dtime']);
                   NotificationApi.showScheduleNotification(
                     scheduledDate: newnoti,
-                    pin: remainders[index]['pin'].toString(),
-                    foldername: remainders[index]['title'].toString(),
-                    textname: remainders[index]['imgname'].toString(),
-                    id: remainders[index]['id'],
+                    pin: widget.notlist[index]['pin'].toString(),
+                    foldername: widget.notlist[index]['title'].toString(),
+                    textname: widget.notlist[index]['imgname'].toString(),
+                    id: widget.notlist[index]['id'],
                     title: 'Reminder!',
                     body:
-                        'Open the saved Note ( Note name ${remainders[index]['imgname'].toString()})',
+                        'Open the saved file ( filename ${widget.notlist[index]['imgname'].toString()})',
                     payload: 'kkkk',
                   );
                   await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => MyNotePrevew(
-                          path: remainders[index]['path'].toString(),
+                          path: widget.notlist[index]['path'].toString(),
                           loading: loadings,
-                          textfilename: remainders[index]['imgname'].toString(),
-                          textvalue: remainders[index]['textvalue'].toString(),
+                          textfilename:
+                              widget.notlist[index]['imgname'].toString(),
+                          textvalue:
+                              widget.notlist[index]['textvalue'].toString(),
                           text: imgPath,
                         ),
                       ));
@@ -179,7 +187,7 @@ class _MyNotsState extends State<MyNots> {
               },
               child: Column(
                 children: [
-                  if (remainders[index]['dtime'] == 'null')
+                  if (widget.notlist[index]['dtime'] == 'null')
                     Card(
                       child: SizedBox(
                         height: 230,
@@ -213,7 +221,7 @@ class _MyNotsState extends State<MyNots> {
                                                   AlwaysScrollableScrollPhysics()),
                                           scrollDirection: Axis.horizontal,
                                           child: Text(
-                                            remainders[index]['imgname'],
+                                            widget.notlist[index]['imgname'],
                                             style: TextStyle(
                                                 color: kblack,
                                                 fontWeight: FontWeight.w500),
@@ -253,8 +261,8 @@ class _MyNotsState extends State<MyNots> {
                                                 ],
                                               ),
                                               onPressed: () async {
-                                                _showMyDialog(remainders[index]
-                                                        ['id']
+                                                _showMyDialog(widget
+                                                    .notlist[index]['id']
                                                     .toString());
                                               },
                                             ),
@@ -278,10 +286,10 @@ class _MyNotsState extends State<MyNots> {
                                               onPressed: () async {
                                                 var deletepath =
                                                     await sqlDb.deleteData(
-                                                        'DELETE FROM notes WHERE id ="${remainders[index]['id'].toString()}"');
+                                                        'DELETE FROM notes WHERE id ="${widget.notlist[index]['id'].toString()}"');
                                                 await flutterLocalNotificationsPlugin
-                                                    .cancel(remainders[index]
-                                                        ['id']);
+                                                    .cancel(widget
+                                                        .notlist[index]['id']);
                                                 setState(() {
                                                   textremainder();
                                                   // itemtlist();
@@ -308,10 +316,9 @@ class _MyNotsState extends State<MyNots> {
                                                 ],
                                               ),
                                               onPressed: () async {
-                                                Share.share(
-                                                  remainders[index]['textvalue']
-                                                      .toString(),
-                                                );
+                                                // Share.share(
+                                                //   remainders[index]['textvalue'].toString(),
+                                                // );
                                               },
                                             ),
                                             TextButton(
@@ -333,14 +340,13 @@ class _MyNotsState extends State<MyNots> {
                                               ),
                                               onPressed: () async {
                                                 _write(
-                                                    remainders[index]
+                                                    widget.notlist[index]
                                                             ['textvalue']
                                                         .toString(),
-                                                    remainders[index]['imgname']
+                                                    widget.notlist[index]
+                                                            ['imgname']
                                                         .toString());
-                                                await Share.shareFiles([
-                                                  '${widget.path}/$textFileName'
-                                                ], text: 'Great picture');
+                                                // await Share.shareFiles(['${widget.path}/$textFileName'], text: 'Great picture');
 
                                                 delete(
                                                     '${widget.path}/$textFileName');
@@ -394,7 +400,7 @@ class _MyNotsState extends State<MyNots> {
                                           height: 50,
                                           child: SingleChildScrollView(
                                               scrollDirection: Axis.horizontal,
-                                              child: Text(remainders[index]
+                                              child: Text(widget.notlist[index]
                                                   ['imgname']))),
                                       PopupMenuButton(
                                         shape: const RoundedRectangleBorder(
@@ -433,11 +439,11 @@ class _MyNotsState extends State<MyNots> {
                                                   onPressed: () async {
                                                     var deletepath =
                                                         await sqlDb.deleteData(
-                                                            'DELETE FROM notes WHERE id ="${remainders[index]['id'].toString()}"');
+                                                            'DELETE FROM notes WHERE id ="${widget.notlist[index]['id'].toString()}"');
                                                     await flutterLocalNotificationsPlugin
-                                                        .cancel(
-                                                            remainders[index]
-                                                                ['id']);
+                                                        .cancel(widget
+                                                                .notlist[index]
+                                                            ['id']);
                                                     setState(() {
                                                       textremainder();
                                                       // itemtlist();
@@ -464,11 +470,9 @@ class _MyNotsState extends State<MyNots> {
                                                     ],
                                                   ),
                                                   onPressed: () async {
-                                                    Share.share(
-                                                      remainders[index]
-                                                              ['textvalue']
-                                                          .toString(),
-                                                    );
+                                                    // Share.share(
+                                                    //   remainders[index]['textvalue'].toString(),
+                                                    // );
                                                   },
                                                 ),
                                                 TextButton(
@@ -490,15 +494,13 @@ class _MyNotsState extends State<MyNots> {
                                                   ),
                                                   onPressed: () async {
                                                     _write(
-                                                        remainders[index]
+                                                        widget.notlist[index]
                                                                 ['textvalue']
                                                             .toString(),
-                                                        remainders[index]
+                                                        widget.notlist[index]
                                                                 ['imgname']
                                                             .toString());
-                                                    await Share.shareFiles([
-                                                      '${widget.path}/$textFileName'
-                                                    ], text: 'Great picture');
+                                                    // await Share.shareFiles(['${widget.path}/$textFileName'], text: 'Great picture');
 
                                                     delete(
                                                         '${widget.path}/$textFileName');
@@ -526,7 +528,7 @@ class _MyNotsState extends State<MyNots> {
                                                       width: 17,
                                                     ),
                                                     Text(
-                                                        remainders[index]
+                                                        widget.notlist[index]
                                                                 ['dtime']
                                                             .toString(),
                                                         style: TextStyle(
@@ -759,6 +761,8 @@ class _MyNotsState extends State<MyNots> {
   }
 
   loadings() {
+    print(
+        'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg');
     setState(() {
       textremainder();
 
@@ -779,7 +783,6 @@ class _MyNotsState extends State<MyNots> {
   }
 
   textremainder() async {
-    // remainder = await sqlDb.readData("SELECT * FROM  'notes'WHERE path = '${widget.path}'  ");
     remainders = await sqlDb
         .readData("SELECT * FROM notes WHERE path = '${widget.path}'");
 
@@ -787,10 +790,5 @@ class _MyNotsState extends State<MyNots> {
     setState(() {
       remainders;
     });
-    // List<Map<String, dynamic>>.generate(remainder.length, (index) {
-    //   log(remainder[index]['dtime'].toString());
-    //   return Map<String, dynamic>.from(remainder[index]);
-    // }, growable: true);
-    // var text = remainder[1]['text'];
   }
 }

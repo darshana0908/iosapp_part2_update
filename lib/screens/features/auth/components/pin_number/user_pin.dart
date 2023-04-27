@@ -83,7 +83,7 @@ class _UserPInState extends State<UserPIn> {
                                 )
                               : const Text(''),
                           Text(
-                            confirm_pin ? "" : " Pin Number is wrong Try again",
+                            confirm_pin ? "" : " Pin Number Is Wrong Try Again",
                             style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 25,
@@ -279,6 +279,7 @@ class _UserPInState extends State<UserPIn> {
                                       } else {
                                         setState(() {
                                           confirm_pin = false;
+                                          controler_re_enter_pin.clear();
                                         });
                                       }
                                     } else {
@@ -317,6 +318,7 @@ class _UserPInState extends State<UserPIn> {
                                       } else {
                                         setState(() {
                                           confirm_pin = false;
+                                          controler_re_enter_pin.clear();
                                         });
                                       }
                                     }
